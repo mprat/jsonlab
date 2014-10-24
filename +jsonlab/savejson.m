@@ -90,12 +90,12 @@ end
 if(length(varargin)==1 && ischar(varargin{1}))
    opt=struct('FileName',varargin{1});
 else
-   opt=varargin2struct(varargin{:});
+   opt=jsonlab.varargin2struct(varargin{:});
 end
 opt.IsOctave=exist('OCTAVE_VERSION','builtin');
 rootisarray=0;
 rootlevel=1;
-forceroot=jsonopt('ForceRootName',0,opt);
+forceroot=jsonlab.jsonopt('ForceRootName',0,opt);
 if((isnumeric(obj) || islogical(obj) || ischar(obj) || isstruct(obj) || iscell(obj)) && isempty(rootname) && forceroot==0)
     rootisarray=1;
     rootlevel=0;
@@ -247,7 +247,7 @@ if(~isempty(name))
 else
     if(len>1) txt=sprintf('%s[\n',padding1); end
 end
-isoct=jsonopt('IsOctave',0,varargin{:});
+isoct=jsonlab.jsonopt('IsOctave',0,varargin{:});
 for e=1:len
     if(isoct)
         val=regexprep(item(e,:),'\\','\\');
@@ -281,7 +281,7 @@ padding1=repmat(sprintf('\t'),1,level);
 padding0=repmat(sprintf('\t'),1,level+1);
 
 if(length(size(item))>2 || issparse(item) || ~isreal(item) || ...
-   isempty(item) ||jsonopt('ArrayToStruct',0,varargin{:}))
+   isempty(item) ||jsonlab.jsonopt('ArrayToStruct',0,varargin{:}))
     if(isempty(name))
     	txt=sprintf('%s{\n%s"_ArrayType_": "%s",\n%s"_ArraySize_": %s,\n',...
               padding1,padding0,class(item),padding0,regexprep(mat2str(size(item)),'\s+',',') );
@@ -293,7 +293,7 @@ else
     if(isempty(name))
     	txt=sprintf('%s%s',padding1,matdata2json(item,level+1,varargin{:}));
     else
-        if(numel(item)==1 && jsonopt('NoRowBracket',1,varargin{:})==1)
+        if(numel(item)==1 && jsonlab.jsonopt('NoRowBracket',1,varargin{:})==1)
             numtxt=regexprep(regexprep(matdata2json(item,level+1,varargin{:}),'^\[',''),']','');
            	txt=sprintf('%s"%s": %s',padding1,checkname(name,varargin{:}),numtxt);
         else
@@ -356,19 +356,19 @@ if(isempty(mat))
     txt='null';
     return;
 end
-floatformat=jsonopt('FloatFormat','%.10g',varargin{:});
+floatformat=jsonlab.jsonopt('FloatFormat','%.10g',varargin{:});
 %if(numel(mat)>1)
     formatstr=['[' repmat([floatformat ','],1,size(mat,2)-1) [floatformat sprintf('],\n')]];
 %else
 %    formatstr=[repmat([floatformat ','],1,size(mat,2)-1) [floatformat sprintf(',\n')]];
 %end
 
-if(nargin>=2 && size(mat,1)>1 && jsonopt('ArrayIndent',1,varargin{:})==1)
+if(nargin>=2 && size(mat,1)>1 && jsonlab.jsonopt('ArrayIndent',1,varargin{:})==1)
     formatstr=[repmat(sprintf('\t'),1,level) formatstr];
 end
 txt=sprintf(formatstr,mat');
 txt(end-1:end)=[];
-if(islogical(mat) && jsonopt('ParseLogical',0,varargin{:})==1)
+if(islogical(mat) && jsonlab.jsonopt('ParseLogical',0,varargin{:})==1)
    txt=regexprep(txt,'1','true');
    txt=regexprep(txt,'0','false');
 end
@@ -379,21 +379,21 @@ end
 % end
 txt=[pre txt post];
 if(any(isinf(mat(:))))
-    txt=regexprep(txt,'([-+]*)Inf',jsonopt('Inf','"$1_Inf_"',varargin{:}));
+    txt=regexprep(txt,'([-+]*)Inf',jsonlab.jsonopt('Inf','"$1_Inf_"',varargin{:}));
 end
 if(any(isnan(mat(:))))
-    txt=regexprep(txt,'NaN',jsonopt('NaN','"_NaN_"',varargin{:}));
+    txt=regexprep(txt,'NaN',jsonlab.jsonopt('NaN','"_NaN_"',varargin{:}));
 end
 
 %%-------------------------------------------------------------------------
 function newname=checkname(name,varargin)
-isunpack=jsonopt('UnpackHex',1,varargin{:});
+isunpack=jsonlab.jsonopt('UnpackHex',1,varargin{:});
 newname=name;
 if(isempty(regexp(name,'0x([0-9a-fA-F]+)_','once')))
     return
 end
 if(isunpack)
-    isoct=jsonopt('IsOctave',0,varargin{:});
+    isoct=jsonlab.jsonopt('IsOctave',0,varargin{:});
     if(~isoct)
         newname=regexprep(name,'(^x|_){1}0x([0-9a-fA-F]+)_','${native2unicode(hex2dec($2))}');
     else
